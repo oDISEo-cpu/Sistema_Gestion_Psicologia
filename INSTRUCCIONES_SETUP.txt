@@ -1,0 +1,63 @@
+================================================================================
+INSTRUCCIONES PARA RESOLVER EL PROBLEMA DE GUARDAR/ELIMINAR USUARIOS
+================================================================================
+
+PROBLEMA IDENTIFICADO:
+El servidor backend no está corriendo, por lo que las funciones de guardar
+y eliminar usuarios no funcionan.
+
+SOLUCIÓN:
+
+1. CREAR ARCHIVO .env
+   -------------------
+   Crea un archivo llamado ".env" en la carpeta "pagina psicologica" con el
+   siguiente contenido:
+
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASS=
+   DB_NAME=secretaria
+   PORT=4000
+
+   (Si tu MySQL tiene contraseña, ponla en DB_PASS)
+
+2. VERIFICAR BASE DE DATOS
+   ------------------------
+   Asegúrate de que la base de datos esté creada ejecutando:
+   
+   mysql -u root -p < database.sql
+   
+   O importa el archivo database.sql desde MySQL Workbench o phpMyAdmin.
+
+3. INSTALAR DEPENDENCIAS (si no están instaladas)
+   ------------------------------------------------
+   cd "pagina psicologica"
+   npm install
+
+4. INICIAR EL SERVIDOR
+   --------------------
+   En una terminal, ejecuta:
+   
+   cd "pagina psicologica"
+   npm start
+   
+   Deberías ver el mensaje:
+   "✅ Conexión a la base de datos establecida correctamente"
+   "Servidor corriendo en http://localhost:4000"
+
+5. ABRIR LA APLICACIÓN
+   --------------------
+   Abre el archivo Index.html en tu navegador. Ahora las funciones de guardar
+   y eliminar deberían funcionar correctamente.
+
+NOTAS:
+- El servidor debe estar corriendo siempre que uses la aplicación
+- Si ves errores de conexión, verifica que MySQL esté corriendo
+- Si ves errores de base de datos, verifica que la base "secretaria" exista
+
+CAMBIOS REALIZADOS:
+- Se corrigió el nombre de la base de datos (de "Secretaria" a "secretaria")
+- Se mejoró el manejo de errores en el servidor y frontend
+- Se añadieron mensajes de error más descriptivos
+- Se añadió validación de campos requeridos
+

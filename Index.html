@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión Psicológica</title>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="ph ph-brain"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Secretaria Psicológica</h1>
+                    <p>Gestión integral de estudiantes</p>
+                </div>
+            </div>
+            <nav class="nav-tabs main-menu">
+                <button class="nav-tab active menu-btn" data-section="register">
+                    <i class="ph ph-user-plus"></i>
+                    <span>Registro</span>
+                </button>
+                <button class="nav-tab menu-btn" data-section="appointments">
+                    <i class="ph ph-calendar"></i>
+                    <span>Agendar Cita</span>
+                </button>
+            </nav>
+            <div>
+                <button class="admin-btn" id="maestroMenuBtn">
+                    <i class="ph ph-shield"></i>
+                    <span>Admin</span>
+                </button>
+                <button class="admin-btn" id="maestroLogoutBtn" style="display: none;">
+                    <i class="ph ph-sign-out"></i>
+                    <span>Salir</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Modal de Login para Usuario Maestro -->
+    <div id="maestroLoginModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="ph ph-shield"></i> Acceso Usuario Maestro</h2>
+                <button id="maestroLoginCloseBtn" class="modal-close-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="maestroKeyInput"><i class="ph ph-key"></i> Clave de Acceso</label>
+                    <input type="password" id="maestroKeyInput" placeholder="Ingresa la clave de acceso (Maestro o Programador)" autofocus>
+                    <small style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem; display: block;">
+                        Ingresa la clave de Maestro o Programador para acceder
+                    </small>
+                </div>
+                <div id="maestroLoginError" class="error-message" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="maestroLoginSubmitBtn" class="btn btn-primary">
+                    <i class="ph ph-sign-in"></i> Ingresar
+                </button>
+                <button id="maestroLoginCancelBtn" class="btn btn-secondary">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Seleccionar Estudiante al Agendar Cita -->
+    <div id="selectStudentModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2><i class="ph ph-user-plus"></i> Seleccionar Estudiante</h2>
+                <button id="selectStudentCloseBtn" class="modal-close-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="studentSearchModal"><i class="ph ph-magnifying-glass"></i> Buscar Estudiante</label>
+                    <input type="text" id="studentSearchModal" class="search-input" placeholder="Buscar por nombre, apellido o carrera...">
+                </div>
+                <div id="studentSelectList" style="max-height: 400px; overflow-y: auto; margin-top: 1rem;">
+                    <p class="empty-list-message">Cargando estudiantes...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="selectStudentCancelBtn" class="btn btn-secondary">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="main-container">
+        <!-- VISTA DE REGISTRO -->
+        <section id="register" class="content-section active">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="ph ph-user-plus"></i></div>
+                    <h2 class="card-title">Registrar Estudiante</h2>
+                </div>
+                <form id="studentForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nombre"><i class="ph ph-user"></i> Nombre</label>
+                            <input type="text" id="nombre" name="nombre" placeholder="Nombre del estudiante" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="apellido"><i class="ph ph-user"></i> Apellido</label>
+                            <input type="text" id="apellido" name="apellido" placeholder="Apellido del estudiante" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="telefono"><i class="ph ph-phone"></i> Teléfono</label>
+                            <input type="tel" id="telefono" name="telefono" placeholder="0412-1234567">
+                        </div>
+                        <div class="form-group">
+                            <label for="carrera"><i class="ph ph-graduation-cap"></i> Carrera</label>
+                            <input type="text" id="carrera" name="carrera" placeholder="Carrera universitaria" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label><i class="ph ph-gender-intersex"></i> Sexo</label>
+                            <div class="radio-group">
+                                <label class="radio-option"><input type="radio" name="sexo" value="Masculino" checked> Masculino</label>
+                                <label class="radio-option"><input type="radio" name="sexo" value="Femenino"> Femenino</label>
+                                <label class="radio-option"><input type="radio" name="sexo" value="Otro"> Otro</label>
+                            </div>
+                        </div>
+                        <div class="photo-upload">
+                            <label for="fotoEstudiante" class="photo-upload-box photo-upload-area">
+                                <i class="ph ph-camera"></i>
+                                <p>Subir foto</p>
+                                <small>Opcional</small>
+                            </label>
+                            <input type="file" id="fotoEstudiante" accept="image/*" hidden>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ph ph-floppy-disk"></i> Guardar Estudiante
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- VISTA DE ESTUDIANTES -->
+        <section id="students" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="ph ph-users"></i></div>
+                    <h2 class="card-title">Estudiantes Registrados</h2>
+                </div>
+                <div class="search-container">
+                    <i class="ph ph-magnifying-glass search-icon"></i>
+                    <input type="text" class="search-input" id="studentSearch" placeholder="Buscar por nombre, apellido o carrera...">
+                </div>
+                <div class="students-grid" id="studentsList">
+                    <p class="empty-list-message">Cargando estudiantes...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA DE CITAS -->
+        <section id="appointments" class="content-section">
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div class="card-icon"><i class="ph ph-calendar"></i></div>
+                        <h2 class="card-title">Calendario de Citas</h2>
+                    </div>
+                    <button id="newAppointmentBtn" class="btn btn-primary">
+                        <i class="ph ph-calendar-plus"></i> Agendar Nueva Cita
+                    </button>
+                </div>
+
+                <!-- Panel de agendamiento (se muestra al seleccionar un día) -->
+                <div id="appointmentSchedulePanel" class="appointment-schedule-panel hidden">
+                    <div class="schedule-panel-header">
+                        <div>
+                            <h3 id="schedulePanelTitle"><i class="ph ph-calendar-plus"></i> Agendar Nueva Cita</h3>
+                            <p id="schedulePanelStudentName" class="text-muted"></p>
+                            <p id="schedulePanelDate" class="text-muted" style="margin-top: 0.5rem;"></p>
+                        </div>
+                        <button id="closeSchedulePanel" class="btn btn-danger btn-sm"><i class="ph ph-x"></i></button>
+                    </div>
+                    <div class="schedule-panel-body">
+                        <div class="form-group">
+                            <label for="appointmentTimeInput"><i class="ph ph-clock"></i> Hora</label>
+                            <input type="time" id="appointmentTimeInput" required>
+                        </div>
+                        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                            <button type="button" id="confirmAppointmentBtn" class="btn btn-primary">
+                                <i class="ph ph-calendar-check"></i> Confirmar Cita
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendario Visual -->
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <h3 id="calendarMonthYear" style="text-transform: capitalize;"></h3>
+                        <div class="calendar-nav">
+                            <button id="calendarNavLeft" class="calendar-nav-btn"><i class="ph ph-caret-left"></i></button>
+                            <button id="calendarNavRight" class="calendar-nav-btn"><i class="ph ph-caret-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid calendar-day-names">
+                        <div>Dom</div>
+                        <div>Lun</div>
+                        <div>Mar</div>
+                        <div>Mié</div>
+                        <div>Jue</div>
+                        <div>Vie</div>
+                        <div>Sáb</div>
+                    </div>
+                    <div class="calendar-grid" id="calendarDaysGrid"></div>
+                </div>
+
+                <!-- Lista de citas del día seleccionado -->
+                <div id="appointmentsList" style="margin-top: 2rem;">
+                    <h3 style="margin-bottom: 1rem;"></h3>
+                    <div id="appointmentsListContent">
+                        <p class="empty-list-message">Selecciona un día en el calendario para ver las citas</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA DE USUARIO MAESTRO -->
+        <section id="maestro-section" class="content-section">
+            <div class="maestro-dashboard">
+                <nav class="maestro-menu card">
+                    <button class="menu-btn active" data-maestro-section="maestro-requests">
+                        <i class="ph ph-clipboard-text"></i>
+                        <span>Solicitudes</span>
+                    </button>
+                    <button class="menu-btn" data-maestro-section="maestro-appointments">
+                        <i class="ph ph-calendar"></i>
+                        <span>Agenda</span>
+                    </button>
+                    <button class="menu-btn" data-maestro-section="maestro-students">
+                        <i class="ph ph-users"></i>
+                        <span>Estudiantes</span>
+                    </button>
+                    <button class="menu-btn" data-maestro-section="maestro-statistics">
+                        <i class="ph ph-chart-line"></i>
+                        <span>Estadísticas</span>
+                    </button>
+                </nav>
+                <div class="maestro-content">
+                    <!-- Solicitudes -->
+                    <div id="maestro-requests" class="maestro-content-area active">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="ph ph-clipboard-text"></i></div>
+                                <h2 class="card-title">Solicitudes de Cita Pendientes</h2>
+                            </div>
+                            <div id="maestro-requests-list">
+                                <p class="empty-list-message">Cargando solicitudes...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agenda -->
+                    <div id="maestro-appointments" class="maestro-content-area">
+                        <div class="maestro-appointments-grid">
+                            <div class="maestro-calendar-container card">
+                                <div class="calendar-header">
+                                    <h3 id="maestroCurrentMonthYear" style="text-transform: capitalize;"></h3>
+                                    <div class="calendar-nav">
+                                        <button id="maestroNavLeft" class="calendar-nav-btn"><i class="ph ph-caret-left"></i></button>
+                                        <button id="maestroNavRight" class="calendar-nav-btn"><i class="ph ph-caret-right"></i></button>
+                                    </div>
+                                </div>
+                                <div class="calendar-grid calendar-day-names">
+                                    <div>Dom</div>
+                                    <div>Lun</div>
+                                    <div>Mar</div>
+                                    <div>Mié</div>
+                                    <div>Jue</div>
+                                    <div>Vie</div>
+                                    <div>Sáb</div>
+                                </div>
+                                <div class="calendar-grid" id="maestroCalendarDaysGrid"></div>
+                            </div>
+                            <div class="maestro-appointments-detail-container card">
+                                <h3>Citas del día</h3>
+                                <p id="maestroSelectedDateDisplay" class="text-muted"></p>
+                                <div id="maestroAppointmentsListDetail">
+                                    <p class="empty-list-message">No hay citas agendadas.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estudiantes -->
+                    <div id="maestro-students" class="maestro-content-area">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="ph ph-users"></i></div>
+                                <h2 class="card-title">Gestionar Estudiantes</h2>
+                            </div>
+                            <div class="search-container">
+                                <i class="ph ph-magnifying-glass search-icon"></i>
+                                <input type="text" class="search-input" id="maestroStudentSearch" placeholder="Buscar estudiante...">
+                            </div>
+                            <div class="students-grid" id="maestroStudentsList">
+                                <p class="empty-list-message">Cargando estudiantes...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas (Maestro) -->
+                    <div id="maestro-statistics" class="maestro-content-area">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="ph ph-chart-line"></i></div>
+                                <h2 class="card-title">Estadísticas del Sistema</h2>
+                                <button id="refreshMaestroStatisticsBtn" class="btn btn-sm btn-primary">
+                                    <i class="ph ph-arrow-clockwise"></i> Actualizar
+                                </button>
+                            </div>
+                            <div id="maestroStatisticsContent" style="padding: 1.5rem;">
+                                <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                                    <div class="stat-card" style="background: var(--dark); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+                                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                            <div style="width: 48px; height: 48px; background: rgba(59, 130, 246, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="ph ph-users" style="font-size: 24px; color: #3b82f6;"></i>
+                                            </div>
+                                            <div>
+                                                <h3 style="margin: 0; font-size: 2rem; font-weight: bold;" id="maestroStatTotalStudents">0</h3>
+                                                <p style="margin: 0; color: var(--text-muted);">Total Estudiantes</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card" style="background: var(--dark); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+                                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                            <div style="width: 48px; height: 48px; background: rgba(34, 197, 94, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="ph ph-calendar-check" style="font-size: 24px; color: #22c55e;"></i>
+                                            </div>
+                                            <div>
+                                                <h3 style="margin: 0; font-size: 2rem; font-weight: bold;" id="maestroStatTotalAppointments">0</h3>
+                                                <p style="margin: 0; color: var(--text-muted);">Total Citas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card" style="background: var(--dark); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+                                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                            <div style="width: 48px; height: 48px; background: rgba(251, 191, 36, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="ph ph-clock" style="font-size: 24px; color: #fbbf24;"></i>
+                                            </div>
+                                            <div>
+                                                <h3 style="margin: 0; font-size: 2rem; font-weight: bold;" id="maestroStatPendingAppointments">0</h3>
+                                                <p style="margin: 0; color: var(--text-muted);">Citas Pendientes</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card" style="background: var(--dark); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+                                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                            <div style="width: 48px; height: 48px; background: rgba(34, 197, 94, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="ph ph-check-circle" style="font-size: 24px; color: #22c55e;"></i>
+                                            </div>
+                                            <div>
+                                                <h3 style="margin: 0; font-size: 2rem; font-weight: bold;" id="maestroStatCompletedAppointments">0</h3>
+                                                <p style="margin: 0; color: var(--text-muted);">Citas Completadas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                                    <div class="card" style="background: var(--dark); border: 1px solid var(--border);">
+                                        <div class="card-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                            <h3 style="margin: 0;"><i class="ph ph-graduation-cap"></i> Estudiantes por Carrera</h3>
+                                        </div>
+                                        <div id="maestroStatisticsByCareer" style="padding: 1rem;">
+                                            <p class="empty-list-message">Cargando...</p>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="background: var(--dark); border: 1px solid var(--border);">
+                                        <div class="card-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                            <h3 style="margin: 0;"><i class="ph ph-gender-intersex"></i> Estudiantes por Sexo</h3>
+                                        </div>
+                                        <div id="maestroStatisticsByGender" style="padding: 1rem;">
+                                            <p class="empty-list-message">Cargando...</p>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="background: var(--dark); border: 1px solid var(--border);">
+                                        <div class="card-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                            <h3 style="margin: 0;"><i class="ph ph-calendar"></i> Citas por Estado</h3>
+                                        </div>
+                                        <div id="maestroStatisticsByStatus" style="padding: 1rem;">
+                                            <p class="empty-list-message">Cargando...</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card" style="background: var(--dark); border: 1px solid var(--border); margin-top: 1.5rem;">
+                                    <div class="card-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                        <h3 style="margin: 0;"><i class="ph ph-calendar-clock"></i> Próximas Citas</h3>
+                                    </div>
+                                    <div id="maestroUpcomingAppointmentsList" style="padding: 1rem;">
+                                        <p class="empty-list-message">Cargando...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA DE PROGRAMADOR (Acceso Completo) -->
+        <section id="programador-section" class="content-section">
+            <div class="maestro-dashboard">
+                <nav class="maestro-menu card">
+                    <button class="menu-btn active" data-programador-section="register">
+                        <i class="ph ph-user-plus"></i>
+                        <span>Registro</span>
+                    </button>
+                    <button class="menu-btn" data-programador-section="appointments">
+                        <i class="ph ph-calendar"></i>
+                        <span>Agendar Cita</span>
+                    </button>
+                    <button class="menu-btn" data-programador-section="maestro-requests">
+                        <i class="ph ph-clipboard-text"></i>
+                        <span>Solicitudes</span>
+                    </button>
+                    <button class="menu-btn" data-programador-section="maestro-appointments">
+                        <i class="ph ph-calendar-check"></i>
+                        <span>Agenda</span>
+                    </button>
+                    <button class="menu-btn" data-programador-section="maestro-students">
+                        <i class="ph ph-users"></i>
+                        <span>Estudiantes</span>
+                    </button>
+                    <button class="menu-btn" data-programador-section="statistics">
+                        <i class="ph ph-chart-line"></i>
+                        <span>Estadísticas</span>
+                    </button>
+                    <button class="menu-btn" data-programador-section="settings">
+                        <i class="ph ph-gear"></i>
+                        <span>Configuración</span>
+                    </button>
+                </nav>
+                <div class="maestro-content">
+                    <!-- Registro (reutiliza la sección existente) -->
+                    <div id="programador-register" class="maestro-content-area active">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="ph ph-user-plus"></i></div>
+                                <h2 class="card-title">Registrar Estudiante</h2>
+                            </div>
+                            <form id="programadorStudentForm">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="programadorNombre"><i class="ph ph-user"></i> Nombre</label>
+                                        <input type="text" id="programadorNombre" name="nombre" placeholder="Nombre del estudiante" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="programadorApellido"><i class="ph ph-user"></i> Apellido</label>
+                                        <input type="text" id="programadorApellido" name="apellido" placeholder="Apellido del estudiante" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="programadorTelefono"><i class="ph ph-phone"></i> Teléfono</label>
+                                        <input type="tel" id="programadorTelefono" name="telefono" placeholder="0412-1234567">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="programadorCarrera"><i class="ph ph-graduation-cap"></i> Carrera</label>
+                                        <input type="text" id="programadorCarrera" name="carrera" placeholder="Carrera universitaria" required>
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label><i class="ph ph-gender-intersex"></i> Sexo</label>
+                                        <div class="radio-group">
+                                            <label class="radio-option"><input type="radio" name="sexo" value="Masculino" checked> Masculino</label>
+                                            <label class="radio-option"><input type="radio" name="sexo" value="Femenino"> Femenino</label>
+                                            <label class="radio-option"><input type="radio" name="sexo" value="Otro"> Otro</label>
+                                        </div>
+                                    </div>
+                                    <div class="photo-upload">
+                                        <label for="programadorFotoEstudiante" class="photo-upload-box photo-upload-area">
+                                            <i class="ph ph-camera"></i>
+                                            <p>Subir foto</p>
+                                            <small>Opcional</small>
+                                        </label>
+                                        <input type="file" id="programadorFotoEstudiante" accept="image/*" hidden>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ph ph-floppy-disk"></i> Guardar Estudiante
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Agendar Cita (reutiliza la sección existente) -->
+                    <div id="programador-appointments" class="maestro-content-area">
+                        <div class="card">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <div class="card-icon"><i class="ph ph-calendar"></i></div>
+                                    <h2 class="card-title">Calendario de Citas</h2>
+                                </div>
+                                <button id="programadorNewAppointmentBtn" class="btn btn-primary">
+                                    <i class="ph ph-calendar-plus"></i> Agendar Nueva Cita
+                                </button>
+                            </div>
+
+                            <!-- Panel de agendamiento -->
+                            <div id="programadorAppointmentSchedulePanel" class="appointment-schedule-panel hidden">
+                                <div class="schedule-panel-header">
+                                    <div>
+                                        <h3 id="programadorSchedulePanelTitle"><i class="ph ph-calendar-plus"></i> Agendar Nueva Cita</h3>
+                                        <p id="programadorSchedulePanelStudentName" class="text-muted"></p>
+                                        <p id="programadorSchedulePanelDate" class="text-muted" style="margin-top: 0.5rem;"></p>
+                                    </div>
+                                    <button id="programadorCloseSchedulePanel" class="btn btn-danger btn-sm"><i class="ph ph-x"></i></button>
+                                </div>
+                                <div class="schedule-panel-body">
+                                    <div class="form-group">
+                                        <label for="programadorAppointmentTimeInput"><i class="ph ph-clock"></i> Hora</label>
+                                        <input type="time" id="programadorAppointmentTimeInput" required>
+                                    </div>
+                                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                                        <button type="button" id="programadorConfirmAppointmentBtn" class="btn btn-primary">
+                                            <i class="ph ph-calendar-check"></i> Confirmar Cita
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Calendario Visual -->
+                            <div class="calendar-container">
+                                <div class="calendar-header">
+                                    <h3 id="programadorCalendarMonthYear" style="text-transform: capitalize;"></h3>
+                                    <div class="calendar-nav">
+                                        <button id="programadorCalendarNavLeft" class="calendar-nav-btn"><i class="ph ph-caret-left"></i></button>
+                                        <button id="programadorCalendarNavRight" class="calendar-nav-btn"><i class="ph ph-caret-right"></i></button>
+                                    </div>
+                                </div>
+                                <div class="calendar-grid calendar-day-names">
+                                    <div>Dom</div>
+                                    <div>Lun</div>
+                                    <div>Mar</div>
+                                    <div>Mié</div>
+                                    <div>Jue</div>
+                                    <div>Vie</div>
+                                    <div>Sáb</div>
+                                </div>
+                                <div class="calendar-grid" id="programadorCalendarDaysGrid"></div>
+                            </div>
+
+                            <!-- Lista de citas del día seleccionado -->
+                            <div id="programadorAppointmentsList" style="margin-top: 2rem;">
+                                <h3 style="margin-bottom: 1rem;"></h3>
+                                <div id="programadorAppointmentsListContent">
+                                    <p class="empty-list-message">Selecciona un día en el calendario para ver las citas</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Solicitudes (reutiliza la vista maestro) -->
+                    <div id="programador-maestro-requests" class="maestro-content-area">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="ph ph-clipboard-text"></i></div>
+                                <h2 class="card-title">Solicitudes de Cita Pendientes</h2>
+                            </div>
+                            <div id="programador-requests-list">
+                                <p class="empty-list-message">Cargando solicitudes...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agenda (reutiliza la vista maestro) -->
+                    <div id="programador-maestro-appointments" class="maestro-content-area">
+                        <div class="maestro-appointments-grid">
+                            <div class="maestro-calendar-container card">
+                                <div class="calendar-header">
+                                    <h3 id="programadorMaestroCurrentMonthYear" style="text-transform: capitalize;"></h3>
+                                    <div class="calendar-nav">
+                                        <button id="programadorMaestroNavLeft" class="calendar-nav-btn"><i class="ph ph-caret-left"></i></button>
+                                        <button id="programadorMaestroNavRight" class="calendar-nav-btn"><i class="ph ph-caret-right"></i></button>
+                                    </div>
+                                </div>
+                                <div class="calendar-grid calendar-day-names">
+                                    <div>Dom</div>
+                                    <div>Lun</div>
+                                    <div>Mar</div>
+                                    <div>Mié</div>
+                                    <div>Jue</div>
+                                    <div>Vie</div>
+                                    <div>Sáb</div>
+                                </div>
+                                <div class="calendar-grid" id="programadorMaestroCalendarDaysGrid"></div>
+                            </div>
+                            <div class="maestro-appointments-detail-container card">
+                                <h3>Citas del día</h3>
+                                <p id="programadorMaestroSelectedDateDisplay" class="text-muted"></p>
+                                <div id="programadorMaestroAppointmentsListDetail">
+                                    <p class="empty-list-message">No hay citas agendadas.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estudiantes (reutiliza la vista maestro) -->
+                    <div id="programador-maestro-students" class="maestro-content-area">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="ph ph-users"></i></div>
+                                <h2 class="card-title">Gestionar Estudiantes</h2>
+                            </div>
+                            <div class="search-container">
+                                <i class="ph ph-magnifying-glass search-icon"></i>
+                                <input type="text" class="search-input" id="programadorMaestroStudentSearch" placeholder="Buscar estudiante...">
+                            </div>
+                            <div class="students-grid" id="programadorMaestroStudentsList">
+                                <p class="empty-list-message">Cargando estudiantes...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas (Solo Programador) -->
+                    <div id="programador-statistics" class="maestro-content-area">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="ph ph-chart-line"></i></div>
+                                <h2 class="card-title">Estadísticas del Sistema</h2>
+                                <button id="refreshStatisticsBtn" class="btn btn-sm btn-primary">
+                                    <i class="ph ph-arrow-clockwise"></i> Actualizar
+                                </button>
+                            </div>
+                            <div id="statisticsContent" style="padding: 1.5rem;">
+                                <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                                    <div class="stat-card" style="background: var(--dark); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+                                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                            <div style="width: 48px; height: 48px; background: rgba(59, 130, 246, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="ph ph-users" style="font-size: 24px; color: #3b82f6;"></i>
+                                            </div>
+                                            <div>
+                                                <h3 style="margin: 0; font-size: 2rem; font-weight: bold;" id="statTotalStudents">0</h3>
+                                                <p style="margin: 0; color: var(--text-muted);">Total Estudiantes</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card" style="background: var(--dark); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+                                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                            <div style="width: 48px; height: 48px; background: rgba(34, 197, 94, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="ph ph-calendar-check" style="font-size: 24px; color: #22c55e;"></i>
+                                            </div>
+                                            <div>
+                                                <h3 style="margin: 0; font-size: 2rem; font-weight: bold;" id="statTotalAppointments">0</h3>
+                                                <p style="margin: 0; color: var(--text-muted);">Total Citas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card" style="background: var(--dark); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+                                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                            <div style="width: 48px; height: 48px; background: rgba(251, 191, 36, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="ph ph-clock" style="font-size: 24px; color: #fbbf24;"></i>
+                                            </div>
+                                            <div>
+                                                <h3 style="margin: 0; font-size: 2rem; font-weight: bold;" id="statPendingAppointments">0</h3>
+                                                <p style="margin: 0; color: var(--text-muted);">Citas Pendientes</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card" style="background: var(--dark); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+                                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                            <div style="width: 48px; height: 48px; background: rgba(34, 197, 94, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="ph ph-check-circle" style="font-size: 24px; color: #22c55e;"></i>
+                                            </div>
+                                            <div>
+                                                <h3 style="margin: 0; font-size: 2rem; font-weight: bold;" id="statCompletedAppointments">0</h3>
+                                                <p style="margin: 0; color: var(--text-muted);">Citas Completadas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                                    <div class="card" style="background: var(--dark); border: 1px solid var(--border);">
+                                        <div class="card-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                            <h3 style="margin: 0;"><i class="ph ph-graduation-cap"></i> Estudiantes por Carrera</h3>
+                                        </div>
+                                        <div id="statisticsByCareer" style="padding: 1rem;">
+                                            <p class="empty-list-message">Cargando...</p>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="background: var(--dark); border: 1px solid var(--border);">
+                                        <div class="card-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                            <h3 style="margin: 0;"><i class="ph ph-gender-intersex"></i> Estudiantes por Sexo</h3>
+                                        </div>
+                                        <div id="statisticsByGender" style="padding: 1rem;">
+                                            <p class="empty-list-message">Cargando...</p>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="background: var(--dark); border: 1px solid var(--border);">
+                                        <div class="card-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                            <h3 style="margin: 0;"><i class="ph ph-calendar"></i> Citas por Estado</h3>
+                                        </div>
+                                        <div id="statisticsByStatus" style="padding: 1rem;">
+                                            <p class="empty-list-message">Cargando...</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card" style="background: var(--dark); border: 1px solid var(--border); margin-top: 1.5rem;">
+                                    <div class="card-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                        <h3 style="margin: 0;"><i class="ph ph-calendar-clock"></i> Próximas Citas</h3>
+                                    </div>
+                                    <div id="upcomingAppointmentsList" style="padding: 1rem;">
+                                        <p class="empty-list-message">Cargando...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuración (Solo Programador) -->
+                    <div id="programador-settings" class="maestro-content-area">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="ph ph-gear"></i></div>
+                                <h2 class="card-title">Configuración del Sistema</h2>
+                            </div>
+                            <div style="padding: 1.5rem;">
+                                <div class="card" style="background: var(--dark); border: 1px solid var(--border); margin-bottom: 1.5rem;">
+                                    <div class="card-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                        <h3 style="margin: 0;"><i class="ph ph-sliders"></i> Límites del Sistema</h3>
+                                    </div>
+                                    <div style="padding: 1.5rem;">
+                                        <div class="form-group">
+                                            <label for="maxAppointmentsPerDay"><i class="ph ph-calendar-x"></i> Máximo de Citas por Día</label>
+                                            <input type="number" id="maxAppointmentsPerDay" min="1" max="10" value="2" class="form-control" style="width: 200px;">
+                                            <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+                                                Número máximo de citas que se pueden agendar por día
+                                            </small>
+                                        </div>
+                                        <button id="saveSettingsBtn" class="btn btn-primary" style="margin-top: 1rem;">
+                                            <i class="ph ph-floppy-disk"></i> Guardar Configuración
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="card" style="background: var(--dark); border: 1px solid var(--border); margin-bottom: 1.5rem;">
+                                    <div class="card-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                        <h3 style="margin: 0;"><i class="ph ph-download"></i> Exportar Datos</h3>
+                                    </div>
+                                    <div style="padding: 1.5rem;">
+                                        <p style="color: var(--text-muted); margin-bottom: 1rem;">Exporta los datos del sistema en formato JSON o CSV</p>
+                                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                            <button id="exportStudentsBtn" class="btn btn-primary">
+                                                <i class="ph ph-file-arrow-down"></i> Exportar Estudiantes (JSON)
+                                            </button>
+                                            <button id="exportAppointmentsBtn" class="btn btn-primary">
+                                                <i class="ph ph-file-arrow-down"></i> Exportar Citas (JSON)
+                                            </button>
+                                            <button id="exportAllBtn" class="btn btn-success">
+                                                <i class="ph ph-database"></i> Exportar Todo (JSON)
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card" style="background: var(--dark); border: 1px solid var(--border); margin-bottom: 1.5rem;">
+                                    <div class="card-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                        <h3 style="margin: 0;"><i class="ph ph-info"></i> Información del Sistema</h3>
+                                    </div>
+                                    <div style="padding: 1.5rem;">
+                                        <div id="systemInfo" style="display: grid; gap: 1rem;">
+                                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(59, 130, 246, 0.1); border-radius: 6px;">
+                                                <span><i class="ph ph-server"></i> Versión del Sistema:</span>
+                                                <strong>1.2.0</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(34, 197, 94, 0.1); border-radius: 6px;">
+                                                <span><i class="ph ph-database"></i> Base de Datos:</span>
+                                                <strong>MySQL</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(251, 191, 36, 0.1); border-radius: 6px;">
+                                                <span><i class="ph ph-calendar"></i> Última Actualización:</span>
+                                                <strong id="lastUpdateTime">-</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card" style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3);">
+                                    <div class="card-header" style="padding: 1rem; border-bottom: 1px solid rgba(220, 53, 69, 0.3);">
+                                        <h3 style="margin: 0; color: #dc3545;"><i class="ph ph-warning"></i> Zona de Peligro</h3>
+                                    </div>
+                                    <div style="padding: 1.5rem;">
+                                        <p style="color: var(--text-muted); margin-bottom: 1rem;">
+                                            ⚠️ Estas acciones son irreversibles. Úsalas con precaución.
+                                        </p>
+                                        <button id="cleanDatabaseBtn" class="btn btn-danger">
+                                            <i class="ph ph-trash"></i> Limpiar Base de Datos (Eliminar Todo)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
